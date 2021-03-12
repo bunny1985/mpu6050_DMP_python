@@ -1,13 +1,21 @@
 from MPU6050RPI import MPU6050
 from SimplePID import SimplePID
+import struct
+
+
+def to_short(somebytes):
+    return struct.unpack('>h', somebytes)[0]
 
 
 def avg_from_array(a_array):
     sum = 0.0
+
     for index in range(0, len(a_array)):
+        if isinstance(a_array[index], (bytes, bytearray)):
+            a_array[index] = to_short(a_array[index])
         sum += a_array[index]
 
-    return sum/len(a_array)
+    return sum / len(a_array)
 
 
 i2c_bus = 1
@@ -16,7 +24,7 @@ device_address = 0x68
 # accordingly using a calibration procedure
 x_accel_offset = 0
 y_accel_offset = 0
-z_accel_offset =0
+z_accel_offset = 0
 x_gyro_offset = 0
 y_gyro_offset = 0
 z_gyro_offset = 0
@@ -30,11 +38,11 @@ kp = 0.03125
 ki = 0.25
 kd = 0
 
-pidax = SimplePID(0, -15000, 15000, kp, ki, kd, 100, True)
-piday = SimplePID(0, -15000, 15000, kp, ki, kd, 100, True)
-pidaz = SimplePID(0, -15000, 15000, kp, ki, kd, 100, True)
-pidgx = SimplePID(0, -15000, 15000, kp, ki, kd, 100, True)
-pidgy = SimplePID(0, -15000, 15000, kp, ki, kd, 100, True)
+pidax = SimplePID(0, -150, 15000, kp, ki, kd, 100, True)
+piday = SimplePID(0, -150, 15000, kp, ki, kd, 100, True)
+pidaz = SimplePID(0, -150, 15000, kp, ki, kd, 100, True)
+pidgx = SimplePID(0, -150, 15000, kp, ki, kd, 100, True)
+pidgy = SimplePID(0, -150, 15000, kp, ki, kd, 100, True)
 pidgz = SimplePID(0, -15000, 15000, kp, ki, kd, 100, True)
 
 accel_reading = mpu.get_acceleration()
@@ -43,13 +51,13 @@ x_accel_reading = accel_reading[0]
 y_accel_reading = accel_reading[1]
 z_accel_reading = accel_reading[2]
 
-x_accel_avg = [0]*100
-y_accel_avg = [0]*100
-z_accel_avg = [0]*100
+x_accel_avg = [0] * 100
+y_accel_avg = [0] * 100
+z_accel_avg = [0] * 100
 
-x_accel_offset_avg = [0]*100
-y_accel_offset_avg = [0]*100
-z_accel_offset_avg = [0]*100
+x_accel_offset_avg = [0] * 100
+y_accel_offset_avg = [0] * 100
+z_accel_offset_avg = [0] * 100
 
 axindex = 0
 ayindex = 0
@@ -61,13 +69,13 @@ x_gyro_reading = gyro_reading[0]
 y_gyro_reading = gyro_reading[1]
 z_gyro_reading = gyro_reading[2]
 
-x_gyro_avg = [0]*100
-y_gyro_avg = [0]*100
-z_gyro_avg = [0]*100
+x_gyro_avg = [0] * 100
+y_gyro_avg = [0] * 100
+z_gyro_avg = [0] * 100
 
-x_gyro_offset_avg = [0]*100
-y_gyro_offset_avg = [0]*100
-z_gyro_offset_avg = [0]*100
+x_gyro_offset_avg = [0] * 100
+y_gyro_offset_avg = [0] * 100
+z_gyro_offset_avg = [0] * 100
 
 gxindex = 0
 gyindex = 0
@@ -86,7 +94,7 @@ try:
         z_gyro_reading = gyro_reading[2]
 
         if pidax.check_time():
-            x_accel_offset = pidax.get_output_value(x_accel_reading)
+            x_accel_offset = pidax.get_output_value(to_short(x_accel_reading))
 
             mpu.set_x_accel_offset(int(x_accel_offset))
 
@@ -110,7 +118,7 @@ try:
                       str(avg_from_array(z_accel_offset_avg)))
 
         if piday.check_time():
-            y_accel_offset = piday.get_output_value(y_accel_reading)
+            y_accel_offset = piday.get_output_value(to_short(y_accel_reading))
 
             mpu.set_y_accel_offset(int(y_accel_offset))
 
@@ -122,7 +130,7 @@ try:
                 ayindex = 0
 
         if pidaz.check_time():
-            z_accel_offset = pidaz.get_output_value(z_accel_reading)
+            z_accel_offset = pidaz.get_output_value(to_short(z_accel_reading))
 
             mpu.set_z_accel_offset(int(z_accel_offset))
 
@@ -135,7 +143,7 @@ try:
 
         # Gyro calibration
         if pidgx.check_time():
-            x_gyro_offset = pidgx.get_output_value(x_gyro_reading)
+            x_gyro_offset = pidgx.get_output_value(to_short(x_gyro_reading))
 
             mpu.set_x_gyro_offset(int(x_gyro_offset))
 
@@ -159,7 +167,7 @@ try:
                       str(avg_from_array(z_gyro_offset_avg)))
 
         if pidgy.check_time():
-            y_gyro_offset = pidgy.get_output_value(y_gyro_reading)
+            y_gyro_offset = pidgy.get_output_value(to_short(y_gyro_reading))
 
             mpu.set_y_gyro_offset(int(y_gyro_offset))
 
@@ -171,7 +179,7 @@ try:
                 gyindex = 0
 
         if pidgz.check_time():
-            z_gyro_offset = pidgz.get_output_value(z_gyro_reading)
+            z_gyro_offset = pidgz.get_output_value(to_short(z_gyro_reading))
 
             mpu.set_z_gyro_offset(int(z_gyro_offset))
 
